@@ -39,7 +39,8 @@ class Updater:
     def _finish_update(self):
         self._rm_dir('app')
         os.rename('update', 'app')
-        self._is_updating
+        print("Update finished!")
+        self._is_updating = False
 
     def _receive(self):
         if self._nrf.available():

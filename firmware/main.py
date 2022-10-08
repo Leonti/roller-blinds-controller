@@ -7,7 +7,7 @@ from machine import Pin, reset
 #micropython.alloc_emergency_exception_buf(100)
 
 BLIND_ID = 3
-IS_LEFT = False
+IS_LEFT = True
 
 led = Led(25)
 nrf_irc_pin = Pin(3, Pin.IN)
@@ -19,9 +19,9 @@ command_processor = None
 try:
   from app.commands import CommandProcesor
   command_processor = CommandProcesor(IS_LEFT)
-except:
+except Exception as e:
   led.on_command_processor_create_error()
-  print('Failed to create command processor')
+  print(f'Failed to create command processor {e}')
 
 def run():
   while True:
@@ -38,6 +38,7 @@ def run():
           led.on_update()
           updater = Updater(nrf)
           updater.start_update()
+          print("Update finished, restarting")
           reset()
         elif command_processor is not None:
           try:
@@ -58,5 +59,5 @@ def run():
         continue
     led.tick()
 
-#print('Running...')
-#run()
+print('Running...')
+run()

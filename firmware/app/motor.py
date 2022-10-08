@@ -23,8 +23,6 @@ class Motor:
         self._enc2 = Pin(pins['enc2'], Pin.IN, Pin.PULL_UP)
         self._enc1 = Pin(pins['enc1'], Pin.IN, Pin.PULL_UP)
         self._enc1.irq(trigger = Pin.IRQ_RISING, handler=self.handle_enc1)
-        
-        #_thread.start_new_thread(monitor_encoder, (self._enc1, self._enc2))
 
         self._going_down = False
 
@@ -33,7 +31,7 @@ class Motor:
         self._last_position_store_update_time_ms = None
         self._last_non_goal_update = None
         
-        self._MAX_PWM = 50 # change for the real thing
+        self._MAX_PWM = 100
         
         self._is_setup = False
         self._is_measuring_default_speed = False
@@ -73,22 +71,22 @@ class Motor:
             if not self._going_down:
                 self._direction_changes += 1
             self._going_down = True    
-            self._pos -= -1 if self._is_left else 1
+            self._pos -= 1 if self._is_left else -1
         else:
             if self._going_down:
                 self._direction_changes += 1
             self._going_down = False
-            self._pos += -1 if self._is_left else 1
+            self._pos += 1 if self._is_left else -1
 
     def go_to_position_percent(self, position_percent):
         limit = self._store.get_bottom_limit()
         position = round((limit * position_percent)/100)
-        print(f'going to position {position}, slowdown steps: {self._get_slowdown_steps()}')
+        #+print(f'going to position {position}, slowdown steps: {self._get_slowdown_steps()}')
         self._setpoint = position
 
         steps_left = abs(position - self._pos)
         if steps_left <= self._get_slowdown_steps():
-            print("Position difference is shorter than slowdown period, using default values for pwm speed and max speed")
+            #+print("Position difference is shorter than slowdown period, using default values for pwm speed and max speed")
             approximate_pwm_speed = self._calculate_speed(steps_left, self._get_slowdown_steps(), self._MAX_PWM)
             self._pwm_speed = approximate_pwm_speed if self._pos < self._setpoint else -approximate_pwm_speed
             self._max_speed = self._store.get_default_max_speed() if self._pos < self._setpoint else -self._store.get_default_max_speed()              
@@ -101,25 +99,28 @@ class Motor:
     def go_setup_up(self):
         self._is_setup = True
         speed = self._MAX_PWM * self._store.get_manual_speed_up() / 100
-        print(f'Go setup up with pwm: {speed}')
+        #+print(f'Go setup up with pwm: {speed}')
+        self._direction_changes = 0
         self.up(speed)
 
-    def stop_and_set_top_limit(self):
-        print('stop and set top limit')
+    def stop_and_set_top_limit(self):     
         self._set_speed(0)
         self._pos = 0
         self._store.store_last_position(0)
+        print(f'stop and set top limit, direction changes: {self._direction_changes}')
+        self._direction_changes = 0
 
     def go_setup_down(self):
         self._is_setup = True
         speed = self._MAX_PWM * self._store.get_manual_speed_down() / 100
-        print(f'Go setup down with pwm: {speed}')
+        #+print(f'Go setup down with pwm: {speed}')
         self.down(speed)
 
     def finish_bottom_setup(self):
         self._store.store_bottom_limit(self._pos)
         self._is_setup = False
         self._is_measuring_default_speed = True
+        self._direction_changes = 0
         self.go_to_position_percent(50)    
 
     def _calculate_speed(self, steps_left, slowdown_steps, max_speed): 
@@ -140,7 +141,7 @@ class Motor:
             if adjustment > 1:
                 return max_speed * left_ratio
             else:
-                #print(f'adjustment {adjustment}')
+                #+#+print(f'adjustment {adjustment}')
                 return max_speed * cutoff_ratio * adjustment
         
         #adjustment = 1/(100 - left_ratio * 100)
@@ -152,11 +153,11 @@ class Motor:
             return
         time_diff_ms = time.ticks_diff(time.ticks_ms(), self._last_position_store_update_time_ms)  
         if time_diff_ms > 1000:
-            print(f'Pos: {self._pos}, direction changes: {self._direction_changes}')
+            #+print(f'Pos: {self._pos}, direction changes: {self._direction_changes}')
             self._last_position_store_update_time_ms = time.ticks_ms()
 
             # don't wirte to FS while motor is moving to avoid interrupt delays
-            if self._goal_reached:
+            if self._goal_reached and not self._is_setup:
                 self._store.store_last_position(self._pos)
 
     def format_status(self):
@@ -171,9 +172,10 @@ class Motor:
 
         if abs(self._pos - self._setpoint) <= tolerance:
             if self._goal_reached_at is not None and time.ticks_diff(time.ticks_ms(), self._goal_reached_at) > 1000:
-                print('GOAL STABILISED')
+                #+print('GOAL STABILISED')
                 self.stop()
                 self._goal_reached = True
+                print(f'GOAL STABILISED, direction changes: {self._direction_changes}')
             else:
                 self.short_break()
                 if self._goal_reached_at is None:
@@ -218,7 +220,7 @@ class Motor:
                 if self._max_speed is None:
                     self._max_speed = actual_speed
                 desired_speed = self._calculate_speed(steps_left, self._get_slowdown_steps(), self._max_speed)
-                print(f'steps left: {steps_left}, desired speed: {desired_speed}, actual_speed: {actual_speed}, max speed: {self._max_speed}')
+                #+print(f'steps left: {steps_left}, desired speed: {desired_speed}, actual_speed: {actual_speed}, max speed: {self._max_speed}')
                 self._update_pid_speed(time_diff_ms, actual_speed, desired_speed)
             else:
                 self._set_speed(self._MAX_PWM)
@@ -231,7 +233,7 @@ class Motor:
                 if self._max_speed is None:
                     self._max_speed = actual_speed    
                 desired_speed = self._calculate_speed(steps_left, self._get_slowdown_steps(), self._max_speed)
-                print(f'steps left: {steps_left}, desired speed: {desired_speed}, actual_speed: {actual_speed}, max speed: {self._max_speed}')
+                #+print(f'steps left: {steps_left}, desired speed: {desired_speed}, actual_speed: {actual_speed}, max speed: {self._max_speed}')
                 self._update_pid_speed(time_diff_ms, actual_speed, desired_speed)
             else:
                 self._set_speed(-self._MAX_PWM)
@@ -249,7 +251,7 @@ class Motor:
         self._speed_previous_error = speed_error
 
         PID_total = (PID_p + self._PID_i + PID_d) * (self._MAX_PWM/100)
-        print(f'PID_total: {PID_total}, {PID_p} + {self._PID_i} + {PID_d}')
+        #+print(f'PID_total: {PID_total}, {PID_p} + {self._PID_i} + {PID_d}')
         
         if PID_total > 0:
             total_adjustment = min(5, PID_total)
@@ -269,7 +271,7 @@ class Motor:
 
 
     def _set_speed(self, speed):
-        print(f'Setting speed to {speed}')
+        #+print(f'Setting speed to {speed}')
         self._pwm_speed = speed
         if speed < 0:
             self.up(abs(speed))
@@ -279,13 +281,13 @@ class Motor:
             self.short_break()
 
     def up(self, speed):
-        if self._is_left:
+        if not self._is_left:
             self._ccw(speed)
         else:
             self._cw(speed)
             
     def down(self, speed):
-        if self._is_left:
+        if not self._is_left:
             self._cw(speed)
         else:
             self._ccw(speed)        

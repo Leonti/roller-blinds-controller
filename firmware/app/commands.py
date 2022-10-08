@@ -86,5 +86,5 @@ class CommandProcesor:
     return ""
 
   def tick(self):
-    #self._m0.update()
+    self._m0.update()
     self._m1.update()

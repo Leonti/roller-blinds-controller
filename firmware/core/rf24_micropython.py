@@ -8,7 +8,6 @@ except ImportError:
     pass
 from micropython import const
 
-
 class SPIDev:
 
     def __init__(self, spi, csn):
