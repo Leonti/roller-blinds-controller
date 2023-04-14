@@ -67,6 +67,11 @@ def deploy(port):
     exit(1)          
   # cwd
 
-#clean("a2")
-#deploy("a2")
-compile()
+def prepare_for_update():
+  compile()
+  shutil.copy("./firmware/app", "./out/update")
+  print("'mpremote a2' and then 'import ota_update' and 'ota_update.run()'")
+#clean("a3")
+#compile()
+deploy("a3")
+#

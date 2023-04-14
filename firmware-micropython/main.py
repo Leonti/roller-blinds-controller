@@ -6,7 +6,7 @@ from machine import Pin, reset
 #import micropython
 #micropython.alloc_emergency_exception_buf(100)
 
-BLIND_ID = 3
+BLIND_ID = 2
 IS_LEFT = True
 
 led = Led(25)

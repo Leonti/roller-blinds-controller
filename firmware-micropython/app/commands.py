@@ -46,12 +46,13 @@ class CommandProcesor:
     command_set = {k for k in commands if commands[k] == command_id}
     if len(command_set) == 1:
       command = list(command_set)[0]
-
+      print(f"Command is '{command}'")
       if command == 'PREPARE_SETTINGS':
         side = split_command[1]
         settings = self._store_0.get_settings_as_string() if side == '0' else self._store_1.get_settings_as_string()
         return settings
       if command == 'PREPARE_STATUS':
+        print("PREPARING STATUS")
         side = split_command[1]
         return self._m0.format_status() if side == '0' else self._m1.format_status()  
       elif command == 'READ_RESPONSE':

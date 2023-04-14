@@ -20,9 +20,9 @@ class Motor:
         
         self._pos = self._store.get_last_position()
 
-        self._enc2 = Pin(pins['enc2'], Pin.IN, Pin.PULL_UP)
-        self._enc1 = Pin(pins['enc1'], Pin.IN, Pin.PULL_UP)
-        self._enc1.irq(trigger = Pin.IRQ_RISING, handler=self.handle_enc1)
+        self._enc2 = Pin(pins['enc2'], Pin.IN)
+        self._enc1 = Pin(pins['enc1'], Pin.IN)
+        self._enc1.irq(trigger = Pin.IRQ_RISING, handler=self.handle_enc1, hard = True)
 
         self._going_down = False
 
@@ -128,24 +128,7 @@ class Motor:
             return max_speed
         
         left_ratio = steps_left/slowdown_steps
-        cutoff_ratio = 0.6 # the bigger the number the shorter is linear path
-        
         return max_speed * left_ratio
-        
-        # not exexuted
-        if left_ratio >= cutoff_ratio:
-            return max_speed * left_ratio
-        else:
-            scaled_percent_left = (left_ratio / cutoff_ratio) * 100
-            adjustment = 1.0/(100.0 - scaled_percent_left)
-            if adjustment > 1:
-                return max_speed * left_ratio
-            else:
-                #+#+print(f'adjustment {adjustment}')
-                return max_speed * cutoff_ratio * adjustment
-        
-        #adjustment = 1/(100 - left_ratio * 100)
-        #return max_speed * adjustment
 
     def _store_last_position_update(self):
         if self._last_position_store_update_time_ms is None:
@@ -231,7 +214,7 @@ class Motor:
             if steps_left <= self._get_slowdown_steps():
                 actual_speed = position_diff / time_diff_ms
                 if self._max_speed is None:
-                    self._max_speed = actual_speed    
+                    self._max_speed = actual_speed     
                 desired_speed = self._calculate_speed(steps_left, self._get_slowdown_steps(), self._max_speed)
                 #+print(f'steps left: {steps_left}, desired speed: {desired_speed}, actual_speed: {actual_speed}, max speed: {self._max_speed}')
                 self._update_pid_speed(time_diff_ms, actual_speed, desired_speed)
@@ -258,7 +241,7 @@ class Motor:
             pwm_speed = min(self._MAX_PWM, self._pwm_speed + total_adjustment)
         else:
             total_adjustment = max(-5, PID_total)
-            pwm_speed = min(-self._MAX_PWM, self._pwm_speed + total_adjustment)
+            pwm_speed = max(-self._MAX_PWM, self._pwm_speed + total_adjustment)
             
         new_speed = self._pwm_speed + total_adjustment    
 
