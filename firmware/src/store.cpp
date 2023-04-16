@@ -27,20 +27,24 @@ int Store::writeSettingsToBytes(uint8_t* buffer) {
   return 15;
 }
 
-int Store::getLastPosition() {
+int32_t Store::getLastPosition() {
   File f = LittleFS.open("position_" + String(_motorId), "r");
-  int pos = 0;
+  int32_t pos;
   if (f) {
-    pos = f.parseInt();
+    uint8_t buf[4];
+    f.read(buf, 4);
+    memcpy(&pos, &buf[0], 4);
   }
   cachedPosition = pos;
   return pos;
 }
 
-void Store::storeLastPosition(int pos) {
+void Store::storeLastPosition(int32_t pos) {
   if (pos == cachedPosition) return; 
   File f = LittleFS.open("position_" + String(_motorId), "w");
-  f.printf("%d", pos);
+  uint8_t buf[4];
+  memcpy(&buf[0], &pos, 4);
+  f.write(buf, 4);
   f.close();
 }
 
@@ -52,14 +56,16 @@ void Store::persistSettings() {
   f.close();
 }
 
-void Store::storeBottomLimit(int bottomLimit) {
+void Store::storeBottomLimit(int32_t bottomLimit) {
   Serial.printf("Storing bottom limit: %d\n", bottomLimit);
   _settings->bottom_limit = bottomLimit;
   persistSettings();
 }
-int Store::getBottomLimit() {
+
+int32_t Store::getBottomLimit() {
   return _settings->bottom_limit;
 }
+
 void Store::storeDefaultMaxSpeed(float defaultMaxSpeed) {
   _settings->default_max_speed = defaultMaxSpeed;
   persistSettings();

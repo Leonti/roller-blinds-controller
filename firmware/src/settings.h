@@ -7,7 +7,7 @@ class Settings
 {
 
 public:
-  unsigned long bottom_limit = 0;
+  uint32_t bottom_limit = 0;
   uint8_t slowdown_percent = 20;
   uint8_t manual_speed_up = 70;
   uint8_t manual_speed_down = 50;

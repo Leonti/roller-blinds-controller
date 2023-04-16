@@ -8,10 +8,10 @@ class Store {
 public:
   Store(int motorId, Settings* settings);
   void begin();
-  void storeLastPosition(int lastPosition);
-  int getLastPosition();
-  void storeBottomLimit(int bottomLimit);
-  int getBottomLimit();
+  void storeLastPosition(int32_t lastPosition);
+  int32_t getLastPosition();
+  void storeBottomLimit(int32_t bottomLimit);
+  int32_t getBottomLimit();
   void storeDefaultMaxSpeed(float defaultMaxSpeed);
   float getDefaultMaxSpeed();
   void storeSettingsFromBytes(uint8_t* bytes);
@@ -26,6 +26,6 @@ private:
   int _motorId;
   Settings* _settings;
   void persistSettings();
-  int cachedPosition;
+  int32_t cachedPosition;
 };
 #endif
