@@ -31,6 +31,7 @@ public:
   int writeStatus(uint8_t* buffer);
   void begin();
   bool isGoalReached();
+  void resetBottom();
 private:
   bool _isLeft;
   Store* _store;

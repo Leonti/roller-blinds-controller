@@ -14,7 +14,7 @@ void Store::begin() {
     f.read(buffer, 15);
     f.close();
     _settings->parse_settings_from_bytes(buffer, 15);
-  }  
+  }
 }
 
 void Store::storeSettingsFromBytes(uint8_t* bytes) {
@@ -40,7 +40,7 @@ int32_t Store::getLastPosition() {
 }
 
 void Store::storeLastPosition(int32_t pos) {
-  if (pos == cachedPosition) return; 
+  if (pos == cachedPosition) return;
   File f = LittleFS.open("position_" + String(_motorId), "w");
   uint8_t buf[4];
   memcpy(&buf[0], &pos, 4);

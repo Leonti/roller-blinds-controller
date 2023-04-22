@@ -17,22 +17,25 @@ Store* Commands::getStore(uint8_t side) {
 }
 
 int Commands::onCommand(uint8_t* data, int length, uint8_t* nextPayload) {
+  // return first 2 bytes to correlate ack payload in the receiver
+  nextPayload[0] = data[0];
+  nextPayload[1] = data[1];
   if (data[0] > static_cast<int>(Command::Command_MAX)) {
     Serial.printf("Command id '%d' is out of bounds\n", data[0]);
-    return 0;
+    return 2;
   }
   Command command = static_cast<Command>(data[0]);
   uint8_t side = data[1];
   if (command == Command::PREPARE_SETTINGS) {
-    return getStore(side)->writeSettingsToBytes(nextPayload);
+    return getStore(side)->writeSettingsToBytes(&nextPayload[2]) + 2;
   } else if (command == Command::PREPARE_STATUS) {
-    return getMotor(side)->writeStatus(nextPayload);
+    return getMotor(side)->writeStatus(&nextPayload[2]) + 2;
   } else if (command == Command::READ_RESPONSE) {
-    Serial.println("Reading response, doing nothing");
+    // Serial.println("Reading response, doing nothing");
   } else if (command == Command::UPDATE_SETTINGS) {
     if (length != 17) {
       Serial.println("Updating settings failed, invalid size of the message");
-      return 0;
+      return 2;
     }
     getStore(side)->storeSettingsFromBytes(&(data[2]));
   } else if (command == Command::UP_FOR_LIMIT) {
@@ -47,18 +50,20 @@ int Commands::onCommand(uint8_t* data, int length, uint8_t* nextPayload) {
   } else if (command == Command::MOVE_BLINDS_TO) {
     if (length != 3) {
       Serial.println("MOVE_BLINDS_TO failed, invalid size of the message");
-      return 0;
+      return 2;
     }
-    getMotor(side)->goToPositionPercent(data[2]);   
+    getMotor(side)->goToPositionPercent(data[2]);
   } else if (command == Command::OPEN) {
     getMotor(side)->goToPositionPercent(0);
   } else if (command == Command::CLOSE) {
     getMotor(side)->goToPositionPercent(100);
+  } else if (command == Command::RESET_BOTTOM) {
+    getMotor(side)->resetBottom();
   } else {
     Serial.printf("Unknown command for id %d\n", data[0]);
   }
 
-  return 0;
+  return 2;
 }
 
 void Commands::tick() {

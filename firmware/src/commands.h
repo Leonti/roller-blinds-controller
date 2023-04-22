@@ -17,7 +17,8 @@ enum class Command {
   PREPARE_STATUS,
   PREPARE_SETTINGS,
   UPDATE_SETTINGS,
-  Command_MAX = UPDATE_SETTINGS
+  RESET_BOTTOM,
+  Command_MAX = RESET_BOTTOM
 };
 
 class Commands {

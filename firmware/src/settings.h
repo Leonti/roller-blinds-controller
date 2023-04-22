@@ -3,8 +3,7 @@
 
 #include "Arduino.h"
 
-class Settings
-{
+class Settings {
 
 public:
   uint32_t bottom_limit = 0;
@@ -16,12 +15,12 @@ public:
   float pid_kd = 5;
   float pid_ki = 4;
 
-  void get_settings_as_bytes(uint8_t *bytes);
-  void parse_settings_from_bytes(uint8_t *bytes, int length);
+  void get_settings_as_bytes(uint8_t* bytes);
+  void parse_settings_from_bytes(uint8_t* bytes, int length);
   String toString();
 
 private:
-  void float_to_bytes(float value, uint8_t *bytes);
-  float bytes_to_float(uint8_t *bytes);
+  void float_to_bytes(float value, uint8_t* bytes);
+  float bytes_to_float(uint8_t* bytes);
 };
 #endif

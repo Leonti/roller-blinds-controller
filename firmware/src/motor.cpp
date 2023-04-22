@@ -206,6 +206,12 @@ bool Motor::isGoalReached() {
   return false;
 }
 
+void Motor::resetBottom() {
+  _pos = _store->getBottomLimit();
+  _store->storeLastPosition(_pos);
+  setpoint = _pos;
+}
+
 void Motor::updatePidSpeed(long timeDiffMs, float actualSpeed, float desiredSpeed) {
   float speedError = desiredSpeed - actualSpeed;
   float PID_p = _store->getPidKp() * speedError;
