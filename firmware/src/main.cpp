@@ -13,6 +13,15 @@
 
 #include "RF24.h"
 
+// #define IS_LEFT true
+// uint8_t listening_address[6] = "Node0";
+
+// #define IS_LEFT false
+// uint8_t listening_address[6] = "Node1";
+
+// #define IS_LEFT true
+// uint8_t listening_address[6] = "Node2";
+
 #define IS_LEFT true
 uint8_t listening_address[6] = "Node3";
 
